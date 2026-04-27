@@ -30,11 +30,15 @@ def create_driver():
     return driver
 
 def extract_price(text):
-    cleaned = ""
-    for ch in text.replace(",", ""):
-        if ch.isdigit() or ch == ".":
-            cleaned += ch
-    return float(cleaned) if cleaned else 0.0
+    # Remove currency symbol and spaces
+    text = text.replace("Rs.", "").replace("Rs", "").replace(" ", "")
+    # Remove commas (thousands separator)
+    text = text.replace(",", "")
+    text = text.strip()
+    try:
+        return float(text)
+    except:
+        return 0.0
 
 def scrape_category(driver, category, url, pages=5):
     products = []
@@ -91,12 +95,21 @@ def scrape_category(driver, category, url, pages=5):
                 except:
                     pass
 
-                # RATING - class qzqFw contains (4) style text
+# RATING - count filled stars (class Dy1nx = filled, W1iJ5 = half, B4Foa = empty)
                 rating = 0.0
                 try:
-                    rating_el = item.find_element(By.CSS_SELECTOR, ".qzqFw")
-                    raw = rating_el.text.strip().replace("(", "").replace(")", "")
-                    rating = float(raw) if raw else 0.0
+                    filled = item.find_elements(By.CSS_SELECTOR, "._9-ogB.Dy1nx")
+                    half = item.find_elements(By.CSS_SELECTOR, "._9-ogB.W1iJ5")
+                    rating = len(filled) + (0.5 * len(half))
+                except:
+                    pass
+
+                # REVIEW COUNT - the number inside () in qzqFw
+                review_count = 0
+                try:
+                    review_el = item.find_element(By.CSS_SELECTOR, ".qzqFw")
+                    raw = review_el.text.strip().replace("(", "").replace(")", "")
+                    review_count = int(raw) if raw.isdigit() else 0
                 except:
                     pass
 
@@ -115,7 +128,8 @@ def scrape_category(driver, category, url, pages=5):
                         "name": name,
                         "price": price,
                         "rating": rating,
-                        "reviews": reviews,
+                        "reviews": review_count,
+                        "sold": reviews,
                         "category": category,
                     })
                     print(f"    OK -> {name[:50]} | Rs.{price} | rating:{rating} | sold:{reviews}")
