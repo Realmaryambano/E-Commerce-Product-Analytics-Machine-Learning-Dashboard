@@ -1,128 +1,109 @@
-# Ecommerce Data Toolkit
+# Data-Driven E-Commerce Intelligence
 
-Purpose
--------
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/) [![Streamlit](https://img.shields.io/badge/Streamlit-app-orange.svg)](https://streamlit.io/)
 
-This project is a lightweight toolkit for collecting, cleaning, exploring, and modeling e-commerce product data. It is designed for data scientists and ML engineers who want a repeatable pipeline from web-scraped product listings to trained models and a small inference app. The repository focuses on reproducible data processing, clear experiment tracking, and modular scripts that are easy to adapt for new sources or prediction targets.
+An end-to-end toolkit that collects, cleans, analyzes, models, and visualizes e-commerce product data. The system estimates a product's value, flags potentially overpriced items, and recommends similar alternatives via an interactive Streamlit dashboard.
 
-What it contains
+Table of contents
 -----------------
+- [Overview](#overview)
+- [Quick start](#quick-start)
+- [Repository layout](#repository-layout)
+- [Data schema](#data-schema)
+- [Methodology](#methodology)
+- [Models & Outputs](#models--outputs)
+- [Deployment](#deployment)
+- [Future work](#future-work)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
 
-- Data ingestion: `scraper.py` — fetch product pages and store raw rows in `data/raw_products.csv`.
-- Data cleaning: `clean.py` — canonicalise fields, remove duplicates, and produce `data/clean_products.csv`.
-- Exploratory analysis: `eda.py` and `notebooks/` — visualisations and quick checks saved to `plots/`.
-- Feature engineering: `features.py` — transform cleaned data into `data/features_ready.csv` for modeling.
-- Model training: `train_models.py` — train and evaluate models; trained artifacts go to `models/`.
-- Inference app: `app.py` — simple interface to load a model and predict (CLI or minimal HTTP endpoint).
-
-Repository layout
------------------
-
-```
-.
-├─ app.py                 # small inference app
-├─ clean.py               # data cleaning pipeline
-├─ eda.py                 # exploratory analysis script
-├─ features.py            # feature engineering pipeline
-├─ scraper.py             # scraping script
-├─ train_models.py        # model training and evaluation
-├─ data/
-│   ├─ raw_products.csv
-│   ├─ clean_products.csv
-│   └─ features_ready.csv
-├─ models/                # trained model artifacts
-├─ notebooks/             # notebooks used for EDA and experiments
-└─ plots/                 # generated figures
-```
+Overview
+--------
+In modern e-commerce marketplaces, users face information overload, inconsistent pricing, and difficulty assessing true product value. This project builds a data-driven system to collect live product listings, clean and transform them, run statistical analyses and machine learning models, and present insights in an interactive dashboard so users can make smarter purchase decisions.
 
 Quick start
 -----------
+Setup (Windows):
 
-1. Create and activate a virtual environment, then install dependencies:
-
-```bash
+```powershell
 python -m venv .venv
-.venv\Scripts\activate   # Windows
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-If `requirements.txt` is missing, install core packages:
+Run the main pipeline (recommended order):
 
-```bash
-pip install pandas scikit-learn requests beautifulsoup4 lxml matplotlib seaborn joblib
+```powershell
+python scraper.py      # collect raw data
+python clean.py        # clean and normalize
+python eda.py          # exploratory analysis and plots
+python features.py     # build features for modeling
+python train_models.py # train and save models
+python app.py          # start the Streamlit dashboard / inference app
 ```
 
-2. Run the full pipeline (recommended sequence):
-
-```bash
-python scraper.py          # collect raw data
-python clean.py            # clean and normalise
-python eda.py              # produce plots and quick checks
-python features.py         # build features for modeling
-python train_models.py     # train and save models to models/
-python app.py              # run inference (follow app.py docs)
-```
-
-Detailed sections
+Repository layout
 -----------------
+- `scraper.py` — Selenium or requests-based scraping to `data/raw_products.csv`
+- `clean.py` — canonicalisation, type conversion, deduplication -> `data/clean_products.csv`
+- `eda.py` — plots and analysis saved to `plots/`
+- `features.py` — produces `data/features_ready.csv` for training
+- `train_models.py` — model training & evaluation; outputs saved to `models/`
+- `app.py` — Streamlit dashboard for interactive exploration and recommendations
+- `data/`, `models/`, `notebooks/`, `plots/` — supporting artifacts
 
-- Data sources: Configure `scraper.py` with target URLs or feeds. Output is appended to `data/raw_products.csv`.
-- Cleaning rules: `clean.py` applies normalization (lowercasing, trimming), fills missing values for key columns, drops malformed rows, and deduplicates by product ID or normalized title.
-- Feature engineering: `features.py` creates numeric/encoded features (price transforms, TF-IDF or text embeddings for descriptions, categorical encodings for brand/category, availability flags).
-- Modeling: `train_models.py` trains one or more baseline models (e.g., RandomForest, LightGBM, or logistic regression), performs cross-validation, and writes performance logs and serialized models to `models/`.
-- Inference: `app.py` loads a serialized model and exposes a simple interface for single-row or batch predictions. See inline docstring in `app.py` for usage examples.
+Data schema (typical)
+---------------------
+- `product_id` — string
+- `title` — string
+- `description` — string
+- `price` — float
+- `currency` — string
+- `brand` — string
+- `category` — string
+- `rating` — float
+- `reviews` — int
+- `sold_count` — int
+- `url` — string
 
-Data schema (expected)
------------------------
+Methodology
+-----------
+1. Data acquisition: Scrape product listings (Daraz and similar) capturing price, rating, reviews, sold counts, and metadata.
+2. Cleaning & preprocessing: Remove duplicates, fix types, impute or drop missing entries, and standardize textual fields.
+3. Feature engineering: Create value scores, price tiers, encode categoricals, and scale numeric features with `StandardScaler`.
+4. Dimensionality reduction: Use PCA for visualization and to power similarity-based recommendations.
+5. Modeling: Fit Linear Regression for value estimation, Logistic Regression for overpriced classification, and K-Nearest Neighbors for recommendations.
+6. Evaluation & visualization: Produce price distributions, ratings-vs-price plots, correlation heatmaps, and PCA cluster visuals.
 
-Raw rows should include at least:
+Models & outputs
+----------------
+- Value estimation (Linear Regression): predicts an expected value/score for a product.
+- Overpriced detection (Logistic Regression): classifies listings as `overpriced` vs `fair`.
+- Recommendations (KNN): finds similar products based on engineered features or PCA embeddings.
+- Visual outputs: price distribution, ratings vs price scatter, correlation heatmap, PCA clusters, and a Streamlit interface for interactive exploration.
 
-- `product_id` (string) — unique identifier when available
-- `title` (string)
-- `description` (string)
-- `price` (float or string to parse)
-- `currency` (string)
-- `brand` (string)
-- `category` (string)
-- `url` (string)
+Deployment
+----------
+The Streamlit dashboard (`app.py`) bundles model inference and visualizations into an interactive web app. Run `python app.py` and open the provided local URL. For production, consider containerizing the app and deploying to a cloud service (Heroku, AWS Elastic Beanstalk, Azure App Service).
 
-After cleaning, `data/clean_products.csv` contains canonicalised, typed columns. `data/features_ready.csv` contains feature columns with a target column (if supervised training is used).
-
-Best practices and notes
-------------------------
-
-- Keep raw data immutable: never overwrite `raw_products.csv` — append new scrapes and create snapshots.
-- Track experiments by naming model artifacts with timestamps or git commit hashes.
-- Validate assumptions in `eda.py` before training to avoid garbage-in models.
-
-Testing and CI
---------------
-
-- Add unit tests for small, deterministic functions (parsers, normalisers) and integration tests for pipeline scripts.
-- Add a `requirements-dev.txt` with testing tools (`pytest`, `black`, `ruff`) and configure a basic GitHub Actions workflow to run tests on PRs.
-
+Future work
+-----------
+- Expand scraping across multiple marketplaces (Amazon, Alibaba, etc.) for broader datasets.
+- Add advanced models (Random Forest, XGBoost, neural networks) to improve predictions.
+- Add sentiment analysis on reviews (NLP) to augment numeric ratings.
+- Implement real-time price tracking and alerting for deals.
+- Add CI, tests, and automated experiment tracking (MLflow, Weights & Biases).
 
 Contributing
 ------------
+Contributions are welcome. Please open an issue to discuss major changes, add tests for deterministic functions, and submit PRs with clear descriptions. Use a feature branch and include reproducible examples when possible.
 
-Contributions are welcome. Please open an issue to discuss changes before submitting a pull request. Follow these steps:
-
-1. Fork the repo and create a feature branch.
-2. Add tests for your changes when applicable.
-3. Submit a PR with a clear description of the change and link to any artifacts or visualisations.
-
-
+License
+-------
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file.
 
 Contact
 -------
-
-
-If you want help extending this project (requirements file, Docker, CI), tell me which piece to add and I'll scaffold it.
-
-You can also reach me at: maryambano.official@gmail.com
-
-## License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
+maryambano.official@gmail.com
 
