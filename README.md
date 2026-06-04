@@ -116,6 +116,13 @@ Contributions are welcome. Please open an issue to discuss changes before submit
 Contact
 -------
 
+
 If you want help extending this project (requirements file, Docker, CI), tell me which piece to add and I'll scaffold it.
+
+You can also reach me at: maryambano.official@gmail.com
+
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 
