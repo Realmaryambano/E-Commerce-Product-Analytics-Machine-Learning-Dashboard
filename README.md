@@ -205,8 +205,6 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 **Maryam Bano**
 
-BS Computer Science Student
-
 Email: maryambano.official@gmail.com
 
 GitHub: https://github.com/Realmaryambano
