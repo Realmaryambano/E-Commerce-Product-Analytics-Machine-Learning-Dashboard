@@ -10,20 +10,7 @@ else:
     df = pd.read_csv(raw_path)
     print(f"Raw data shape: {df.shape}")
 
-    # 2. Basic Cleaning
-    df.drop_duplicates(subset=["name", "price", "category"], inplace=True)
-    df = df[df["price"] >= 50].copy() # Using .copy() prevents SettingWithCopy warnings
-    print(f"After initial filters: {df.shape}")
-
-    # 3. Fix missing ratings
-    # If a category has NO ratings at all, transform might fail, so we handle that
-    df["rating"] = df["rating"].replace(0, np.nan)
-    df["rating"] = df.groupby("category")["rating"].transform(lambda x: x.fillna(x.mean() if x.notnull().any() else 3.0))
-    df["rating"] = df["rating"].fillna(3.0).round(1)
-
-    # 4. Fix missing sold/reviews
-    df["sold"] = df["sold"].fillna(0).astype(int)
-    df["reviews"] = df["reviews"].fillna(0).astype(int)
+ 
 
     # 5. Create Value Score
     df["value_score"] = (df["rating"] / df["price"]) * 10000
