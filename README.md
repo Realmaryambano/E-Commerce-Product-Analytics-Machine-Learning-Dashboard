@@ -24,11 +24,17 @@ In modern e-commerce marketplaces, users face information overload, inconsistent
 
 ## Dashboard Preview
 
-![Dashboard](images/dashboard.png)
+### Interactive Analytics Dashboard
+![Dashboard Overview](images/dashboard-overview.png)
 
-![Analytics](images/analytics.png)
+### AI Price Prediction
+![ML Prediction](images/ml-price-prediction.png)
 
-![Prediction](images/prediction.png)
+### PCA Product Clustering
+![PCA Analysis](images/pca-product-clusters.png)
+
+### Product Recommendation System
+![Recommendations](images/product-recommendations.png)
 
 ## Project Workflow
 
